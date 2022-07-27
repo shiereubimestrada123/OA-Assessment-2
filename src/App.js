@@ -43,42 +43,56 @@ const App = () => {
   const [selectedPlayerId, setSelectedPlayerId] = useState('');
 
   const [seasonAverages, setSeasonAverages] = useState(null);
+  const [seasons, setSeasons] = useState(null);
+  const [season, setSeason] = useState(null);
+  console.log({ selectedPlayerId });
+  console.log({ team });
+  console.log({ season });
 
   const handleSelectedTeam = (e) => {
     selectedTeam(e.target.value);
     setPlayersPerTeam([]);
-    if (!selectedPlayerId) {
-      setSeasonAverages(null);
-    }
   };
 
   const handleSelectedPlayer = async (e) => {
     setSelectedPlayerId(e.target.value);
+  };
+
+  const handleSelectedSeason = async (e) => {
+    setSeason(e.target.value);
     const playerSeasonAverages = await fetchSeasonAverages(
-      2017,
+      e.target.value,
       selectedPlayerId
     );
     setSeasonAverages(playerSeasonAverages);
-    if (!team) {
-      setSeasonAverages(null);
-    }
   };
 
   useEffect(() => {
     const getAllPlayers = async () => {
       const players = await fetchAllPlayers();
-
       setPlayers(players);
     };
 
     const getAllTeams = async () => {
       const teams = await fetchAllTeams();
-
       setTeams(teams);
+    };
+
+    const getSeasons = () => {
+      let currentYear = new Date().getFullYear();
+      let minYear = currentYear - 12;
+      let years = [];
+
+      while (minYear < currentYear) {
+        years.push(minYear++);
+      }
+
+      return setSeasons(years.reverse());
     };
 
     getAllPlayers();
     getAllTeams();
+    getSeasons();
   }, []);
 
   useEffect(() => {
@@ -132,11 +146,30 @@ const App = () => {
               id='players'
               defaultValue=''
               onChange={handleSelectedPlayer}
+              disabled={!team}
             >
               <option value=''></option>
               {playersPerTeam?.map((player, i) => (
                 <option key={player.id} value={player.id}>
                   {`${player.first_name} ${player.last_name}`}
+                </option>
+              ))}
+            </NativeSelect>
+          </FormControl>
+        </Box>
+        <Box>
+          <FormControl sx={{ width: 300 }}>
+            <InputLabel htmlFor='seasons'>Seasons</InputLabel>
+            <NativeSelect
+              id='seasons'
+              defaultValue=''
+              onChange={handleSelectedSeason}
+              disabled={!selectedPlayerId}
+            >
+              <option value=''></option>
+              {seasons?.map((season, i) => (
+                <option key={i} value={season}>
+                  {season}
                 </option>
               ))}
             </NativeSelect>
@@ -151,7 +184,7 @@ const App = () => {
               labels: ['Pts', 'Reb', 'Ast', 'Stl', 'Blk'],
               datasets: [
                 {
-                  label: 'Stats',
+                  label: 'Season Stats',
                   backgroundColor: [
                     '#76BA99',
                     '#876445',
